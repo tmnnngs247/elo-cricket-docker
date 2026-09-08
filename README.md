@@ -4,6 +4,10 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue?logo=python&logoColor=white)
 ![Build](https://github.com/tmnnngs247/elo-cricket-docker/actions/workflows/docker-build.yml/badge.svg)
 
+> A containerised version of the cricket Elo talent-identification pipeline
+> developed from my MSc research, using synthetic data to demonstrate
+> reproducible execution without exposing the original research dataset.
+
 A match-coupled, career-gated Elo rating engine for List A / ODI cricket, built
 as the statistical core of an MSc dissertation on Elo-based talent
 identification — used to test whether a player's rating at the point of
