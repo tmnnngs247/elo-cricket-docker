@@ -4,43 +4,36 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue?logo=python&logoColor=white)
 ![Build](https://github.com/tmnnngs247/elo-cricket-docker/actions/workflows/docker-build.yml/badge.svg)
 
-> A containerised version of the cricket Elo talent-identification pipeline
-> developed from my MSc research, using synthetic data to demonstrate
-> reproducible execution without exposing the original research dataset.
+A reproducible, containerised Elo rating pipeline for List A / ODI cricket,
+developed from my MSc research into cricket talent identification.
 
-A match-coupled, career-gated Elo rating engine for List A / ODI cricket, built
-as the statistical core of an MSc dissertation on Elo-based talent
-identification — used to test whether a player's rating at the point of
-selection predicts whether they get picked for England.
+The engine produces separate batting and bowling ratings using opponent
+strength, season regression, career-experience gating and a dynamic
+K-factor. It was originally developed to investigate whether domestic
+performance ratings were associated with subsequent England selection.
 
-Ratings are:
-
-- built separately for batting and bowling,
-- opponent-adjusted (weighted against the average current Elo of the
-  bowlers/batters actually faced that match),
-- season-regressed toward the starting rating at each player's first
-  appearance in a new season,
-- gated so a player's rating doesn't move until they've faced/bowled a
-  minimum number of career balls, and
-- updated with a dynamic K-factor based on balls faced/bowled, match
-  experience, and recent-form volatility.
-
-This repository packages that engine as a **reproducible, containerised
-pipeline** — clone it, `docker run`, get Elo ratings out, no setup required:
+This repository packages the core Elo engine as an independently runnable
+pipeline using synthetic data, so it can be built and executed without
+access to the original private research database. Clone it, build the
+image, run the container, and generate Elo ratings without installing
+Python or project dependencies locally:
 
 ```text
-Synthetic match data (data/sample_*.csv)
-              │
-              ▼
+Synthetic data generator
+        │
+        ▼
+sample_bat.csv / sample_bowl.csv
+        │
+        ▼
    Elo rating engine (src/elo.py)
-              │
-              ▼
+        │
+        ▼
   outputs/elo_results.csv
 ```
 
 It deliberately containerises the **computational pipeline**, not the
-original data source. The full dissertation work runs against a private
-ECB data lake; that connection code, and the real dataset, are **not** part
+original data source. The full dissertation work runs against private ECB
+research data; that connection code, and the real dataset, are **not** part
 of this repo or image. Instead, the Docker image runs against a small
 synthetic dataset with the same schema, so anyone can clone this repo and
 reproduce a working Elo pipeline without database access or credentials of
@@ -126,3 +119,12 @@ connect to a private database over credentials that must **never** be
 committed to source control. This container intentionally has no
 database connectivity — it exists to demonstrate that the modelling
 code itself is packaged, reproducible, and independently runnable.
+
+## Engineering features
+
+- Reproducible Python environment with Docker
+- Source-agnostic modelling code
+- Synthetic test-data generation
+- Automated pytest checks
+- GitHub Actions CI
+- Container build and smoke test on every push
