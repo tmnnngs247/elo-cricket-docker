@@ -25,10 +25,21 @@ MATCHES_PER_SEASON_PER_TEAM_PAIR = 2
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 
-def main():
-    rng = np.random.default_rng(SEED)
+def generate_sample_frames(
+    seed: int = SEED,
+    n_seasons: int = N_SEASONS,
+    n_teams: int = N_TEAMS,
+    n_players_per_team: int = N_PLAYERS_PER_TEAM,
+    matches_per_pair: int = MATCHES_PER_SEASON_PER_TEAM_PAIR,
+):
+    """Build the synthetic (bat_df, bowl_df) pair in memory (no disk I/O).
 
-    teams = [f"Team {chr(65 + i)}" for i in range(N_TEAMS)]  # Team A..D
+    Parameterised so tests can request a tiny dataset instead of the full
+    default size used for the Docker demo run.
+    """
+    rng = np.random.default_rng(seed)
+
+    teams = [f"Team {chr(65 + i)}" for i in range(n_teams)]  # Team A..D
     team_ids = {t: i + 1 for i, t in enumerate(teams)}
 
     # Each team gets a fixed squad of batter/bowler-capable player ids.
@@ -36,7 +47,7 @@ def main():
     pid = 1
     for team in teams:
         squad = []
-        for _ in range(N_PLAYERS_PER_TEAM):
+        for _ in range(n_players_per_team):
             squad.append({"player_id": pid, "player_name": f"Player {pid:03d}", "team": team})
             pid += 1
         players[team] = squad
@@ -45,13 +56,13 @@ def main():
     bowl_rows = []
     match_id = 1
 
-    for season_offset in range(N_SEASONS):
+    for season_offset in range(n_seasons):
         season = 2022 + season_offset
         season_start = pd.Timestamp(f"{season}-05-01")
 
         for i, team_a in enumerate(teams):
             for team_b in teams[i + 1:]:
-                for game in range(MATCHES_PER_SEASON_PER_TEAM_PAIR):
+                for game in range(matches_per_pair):
                     match_date = season_start + pd.Timedelta(days=int(rng.integers(0, 120)))
                     home, away = (team_a, team_b) if game % 2 == 0 else (team_b, team_a)
 
@@ -108,13 +119,18 @@ def main():
 
                     match_id += 1
 
+    return pd.DataFrame(bat_rows), pd.DataFrame(bowl_rows)
+
+
+def main():
+    bat_df, bowl_df = generate_sample_frames()
+
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    bat_df = pd.DataFrame(bat_rows)
-    bowl_df = pd.DataFrame(bowl_rows)
     bat_df.to_csv(DATA_DIR / "sample_bat.csv", index=False)
     bowl_df.to_csv(DATA_DIR / "sample_bowl.csv", index=False)
 
-    print(f"Wrote {len(bat_df)} batting rows and {len(bowl_df)} bowling rows across {match_id - 1} synthetic matches.")
+    n_matches = bat_df["match_id"].nunique()
+    print(f"Wrote {len(bat_df)} batting rows and {len(bowl_df)} bowling rows across {n_matches} synthetic matches.")
     print(f"  -> {DATA_DIR / 'sample_bat.csv'}")
     print(f"  -> {DATA_DIR / 'sample_bowl.csv'}")
 
